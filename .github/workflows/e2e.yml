@@ -11,6 +11,14 @@ on:
   schedule:
     - cron: '41 4 * * 1'
   workflow_dispatch:
+  # Called by release.yml to test the exact tag being released.
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to test (defaults to the triggering ref)
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -30,6 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
           persist-credentials: false
       - id: changes
@@ -51,6 +60,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
       - uses: ./.github/actions/setup
       - name: End-to-end suite
@@ -73,6 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:

@@ -1,0 +1,188 @@
+name: Release
+
+# Pushing a version tag (`git tag -s v1.2.3 && git push origin v1.2.3`) verifies the tag,
+# runs the full check suite and the end-to-end tests against that exact commit, then
+# creates the GitHub Release and moves the floating major tag (`v1`) to it.
+#
+# Listing a release on GitHub Marketplace cannot be automated (there is no API for it):
+# open the release once it exists, click "Edit", tick "Publish this Action to the GitHub
+# Marketplace" and save.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing version tag to (re)publish, e.g. v1.0.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+
+jobs:
+  verify:
+    name: Verify release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      major: ${{ steps.meta.outputs.major }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          fetch-depth: 0 # full history: the tag must be on main
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      - name: Verify tag, versions and changelog
+        id: meta
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync } from 'node:fs';
+
+          const tag = process.env.RELEASE_TAG;
+          const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+          if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) {
+            throw new Error(`package.json version "${version}" is not MAJOR.MINOR.PATCH[-pre]`);
+          }
+          if (tag !== `v${version}`) {
+            throw new Error(`Release tag ${tag} must match package.json: v${version}`);
+          }
+
+          // The version the action reports in SARIF must match too.
+          const constants = readFileSync('src/apps/action/constants.ts', 'utf8');
+          const reported = /ACTION_VERSION = '([^']+)'/.exec(constants)?.[1];
+          if (reported !== version) {
+            throw new Error(`ACTION_VERSION in src/apps/action/constants.ts is "${reported}", expected "${version}"`);
+          }
+
+          // Accept `## 1.2.0`, `## [1.2.0]` and either with a date suffix (`## 1.2.0 - 2026-11-18`).
+          const changelog = readFileSync('CHANGELOG.md', 'utf8');
+          const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          if (!new RegExp(`^## \\[?${escaped}\\]?(\\s|$)`, 'm').test(changelog)) {
+            throw new Error(`CHANGELOG.md must have a "## ${version}" heading for this release`);
+          }
+
+          // 1.2.0-beta.1 -> GitHub pre-release, and the major tag is not moved.
+          const prerelease = version.includes('-');
+          const major = `v${version.split('.')[0]}`;
+          appendFileSync(
+            process.env.GITHUB_OUTPUT,
+            `version=${version}\nmajor=${major}\nprerelease=${prerelease}\n`,
+          );
+          NODE
+
+      - name: Tag must be on main
+        run: |
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$(git rev-parse HEAD)" origin/main; then
+            echo "::error::Tag $RELEASE_TAG points to a commit that is not on main."
+            exit 1
+          fi
+
+      - run: yarn check
+      - run: yarn build
+
+      # Users run the committed dist/, so it must be exactly what the tagged source builds.
+      - name: Committed dist/ matches the build
+        run: |
+          if ! git diff --exit-code --stat -- dist/; then
+            echo "::error::dist/ at $RELEASE_TAG is out of date. Run 'yarn build', commit, and tag again."
+            exit 1
+          fi
+
+      - run: yarn verify:dist
+
+  e2e:
+    name: E2E
+    needs: verify
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/e2e.yml
+    with:
+      ref: refs/tags/${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref_name }}
+
+  publish:
+    name: Publish GitHub Release
+    needs: [verify, e2e]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release and move the major tag
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+      MAJOR: ${{ needs.verify.outputs.major }}
+      PRERELEASE: ${{ needs.verify.outputs.prerelease }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+          persist-credentials: true # needed to push the major tag below
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const version = process.env.VERSION;
+          const lines = readFileSync('CHANGELOG.md', 'utf8').split('\n');
+          const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const start = lines.findIndex((l) => new RegExp(`^## \\[?${escaped}\\]?(\\s|$)`).test(l));
+          const rest = lines.slice(start + 1);
+          const end = rest.findIndex((l) => /^## /.test(l));
+          const notes = (end === -1 ? rest : rest.slice(0, end)).join('\n').trim();
+          writeFileSync(`${process.env.RUNNER_TEMP}/notes.md`, `${notes}\n`);
+          NODE
+
+      # Idempotent: re-running for a tag that already has a release changes nothing.
+      - name: Create the GitHub Release
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; not recreating it."
+            exit 0
+          fi
+          flags=(--verify-tag --title "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/notes.md" --generate-notes)
+          if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease); else flags+=(--latest); fi
+          gh release create "$RELEASE_TAG" "${flags[@]}"
+
+      # Users reference `@v1`; point it at the newest stable 1.x.y. Re-publishing an older
+      # release never moves it backwards.
+      - name: Move the major tag
+        if: needs.verify.outputs.prerelease == 'false'
+        run: |
+          git fetch --force --tags origin
+          newest=$(git tag --list "$MAJOR.*.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+          if [ "$newest" != "$RELEASE_TAG" ]; then
+            echo "$RELEASE_TAG is not the newest $MAJOR release ($newest); leaving $MAJOR alone."
+            exit 0
+          fi
+          target=$(git rev-parse "$RELEASE_TAG^{commit}")
+          if [ "$(git rev-parse -q --verify "refs/tags/$MAJOR^{commit}" || true)" = "$target" ]; then
+            echo "$MAJOR already points to $RELEASE_TAG; leaving it (and its signature) as is."
+            exit 0
+          fi
+          git tag -f "$MAJOR" "$target"
+          git push --force origin "refs/tags/$MAJOR"
+          echo "$MAJOR now points to $RELEASE_TAG."
+
+      - name: Next step
+        run: |
+          {
+            echo "### Release $RELEASE_TAG published"
+            echo ""
+            echo "To list it on GitHub Marketplace (no API exists for this): open"
+            echo "${{ github.server_url }}/${{ github.repository }}/releases/tag/$RELEASE_TAG,"
+            echo "click **Edit**, tick **Publish this Action to the GitHub Marketplace**, and save."
+          } >> "$GITHUB_STEP_SUMMARY"

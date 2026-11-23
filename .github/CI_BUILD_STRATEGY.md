@@ -82,18 +82,29 @@ release asset or checksum file, an OSV API change, or a moved Semgrep ruleset.
 
 ## Releasing
 
-1. Move the CHANGELOG's **Unreleased** entries under a `## X.Y.Z` heading, set `version`
-   in `package.json` and `ACTION_VERSION` in `src/apps/action/constants.ts` to `X.Y.Z`,
-   run `yarn build` and commit `dist/`. Merge to `main`.
-2. Tag the release and move the major tag users reference:
+Releasing is automated by `.github/workflows/release.yml`:
 
-   ```bash
-   git tag vX.Y.Z && git push origin vX.Y.Z
-   git tag -f vX && git push -f origin vX
-   ```
+1. Move the CHANGELOG's **Unreleased** entries under a `## X.Y.Z` heading (`## [X.Y.Z]`
+   and a date suffix also work), set `version` in `package.json` and `ACTION_VERSION` in
+   `src/apps/action/constants.ts` to `X.Y.Z`, run `yarn build` and commit `dist/`. Merge
+   to `main`.
+2. Push a tag: `git tag -s vX.Y.Z -m vX.Y.Z && git push origin vX.Y.Z`. The workflow
+   creates the GitHub Release itself, so don't create it by hand.
+3. The workflow then runs:
+   - **Verify release**: the tag matches `package.json` and `ACTION_VERSION`, the
+     CHANGELOG has the version, the tagged commit is on `main`, `yarn check` passes, the
+     committed `dist/` equals a fresh build, and `yarn verify:dist` passes;
+   - **E2E**: the end-to-end suite (`e2e.yml`) against the tag;
+   - **Publish GitHub Release**: the release, with the CHANGELOG section as notes followed
+     by generated notes grouped by PR label (`.github/release.yml`), then moves the major
+     tag (`vX`) to it if it is the newest stable `X.y.z`.
+4. **Marketplace** (manual, no API exists): open the release, click **Edit**, tick
+   **Publish this Action to the GitHub Marketplace** and save.
 
-3. Create the GitHub Release with generated notes (grouped by `.github/release.yml`), and
-   publish it to the Marketplace from the release form.
+A version with a hyphen (`1.2.0-beta.1`) becomes a pre-release and doesn't move the major
+tag. Re-running the workflow, or dispatching it manually with an existing tag (**Actions →
+Release → Run workflow**), safely finishes a release that failed halfway: an existing
+release is never recreated, and the major tag never moves backwards.
 
 Users who pin to a commit SHA (recommended) are not affected by moving the major tag.
 
