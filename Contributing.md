@@ -101,7 +101,7 @@ README's ecosystem table.
    Common scopes: `action`, `engines`, `malware`, `workflows`, `detection`, `report`,
    `types`, `utils`, `deps`.
 6. Fill in the PR template checklist. CI runs lint, typecheck, format, tests, the build
-   check, the end-user suite on Linux/macOS/Windows and a self-scan.
+   check, the end-user suite on Ubuntu and a self-scan.
 
 ## Releases (maintainers)
 

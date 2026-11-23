@@ -42,18 +42,18 @@ resolves the `@apps`/`@libs`/`@types`/`@utils` aliases from `tsconfig.json`.
 
 ## Pull request checks
 
-| Workflow                | Check name                                   | Runs                                                                                                                       | Required    |
-| ----------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `ci.yml`                | `Lint`                                       | `yarn lint` (type-aware, security, import-x layering)                                                                      | yes         |
-| `ci.yml`                | `Typecheck`                                  | `yarn typecheck`                                                                                                           | yes         |
-| `ci.yml`                | `Format`                                     | `yarn format:check`                                                                                                        | optional    |
-| `ci.yml`                | `Self-scan`                                  | This action (`uses: ./`) on its own repository, `fail-on: high`                                                            | yes         |
-| `test.yml`              | `Test`                                       | `yarn test:coverage` (85% lines/functions/statements, 75% branches)                                                        | yes         |
-| `build.yml`             | `Build`                                      | `yarn build` + `yarn verify:dist`, and fails if the committed `dist/` is out of date                                       | yes         |
-| `e2e.yml`               | `E2E` (summary of `Bundle (…)` and `Action`) | `yarn e2e` (strict) on Ubuntu, macOS and Windows against the committed `dist/`, and the action via `uses: ./`; also weekly | yes         |
-| `codeql.yml`            | `Analyze (…)`                                | CodeQL for TypeScript/JavaScript and for the workflows themselves                                                          | recommended |
-| `dependency-review.yml` | `Dependency review`                          | Fails when a PR adds a dependency version with a known moderate+ vulnerability                                             | yes         |
-| `pr-title.yml`          | `PR title`                                   | Conventional Commits title (it becomes the release-notes entry)                                                            | optional    |
+| Workflow                | Check name                                   | Runs                                                                                                    | Required    |
+| ----------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------- |
+| `ci.yml`                | `Lint`                                       | `yarn lint` (type-aware, security, import-x layering)                                                   | yes         |
+| `ci.yml`                | `Typecheck`                                  | `yarn typecheck`                                                                                        | yes         |
+| `ci.yml`                | `Format`                                     | `yarn format:check`                                                                                     | optional    |
+| `ci.yml`                | `Self-scan`                                  | This action (`uses: ./`) on its own repository, `fail-on: high`                                         | yes         |
+| `test.yml`              | `Test`                                       | `yarn test:coverage` (85% lines/functions/statements, 75% branches)                                     | yes         |
+| `build.yml`             | `Build`                                      | `yarn build` + `yarn verify:dist`, and fails if the committed `dist/` is out of date                    | yes         |
+| `e2e.yml`               | `E2E` (summary of `Bundle (…)` and `Action`) | `yarn e2e` (strict) on Ubuntu against the committed `dist/`, and the action via `uses: ./`; also weekly | yes         |
+| `codeql.yml`            | `Analyze (…)`                                | CodeQL for TypeScript/JavaScript and for the workflows themselves                                       | recommended |
+| `dependency-review.yml` | `Dependency review`                          | Fails when a PR adds a dependency version with a known moderate+ vulnerability                          | yes         |
+| `pr-title.yml`          | `PR title`                                   | Conventional Commits title (it becomes the release-notes entry)                                         | optional    |
 
 ## End-to-end suite (`e2e.yml`)
 

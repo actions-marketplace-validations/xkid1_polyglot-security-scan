@@ -22,12 +22,12 @@ Security vulnerabilities go in a private advisory (SECURITY.md), not a public PR
 ## Verification
 
 CI runs typecheck, lint, format, tests with coverage, `build` + `verify:dist`, the e2e
-suite on Linux/macOS/Windows and a self-scan of this repository with the committed
+suite on Ubuntu and a self-scan of this repository with the committed
 `dist/`. All must pass.
 
 - [ ] `yarn check` passes locally
 - [ ] `yarn build && yarn verify:dist` passes, and the rebuilt `dist/` is committed
-- [ ] `yarn e2e` passes locally (real scanners against generated repos; CI runs it on Linux, macOS and Windows)
+- [ ] `yarn e2e` passes locally (real scanners against generated repos; CI runs it on Ubuntu)
 - [ ] Tests added or updated for every behavior change
 - [ ] New detection rules have a positive sample **and** a "stays quiet on normal code" sample
 

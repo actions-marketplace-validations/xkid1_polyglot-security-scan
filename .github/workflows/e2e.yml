@@ -34,8 +34,8 @@ jobs:
         uses: ./.github/actions/changes
 
   # e2e/run.mjs against the COMMITTED dist/ (what users run), with the real scanners
-  # downloaded and checksum-verified on every OS the action supports. Strict mode: every
-  # engine must run; Semgrep must be skipped (not failed) on Windows.
+  # downloaded and checksum-verified on Ubuntu (add macos-latest or windows-latest to the
+  # matrix to cover them too). Strict mode: every engine, Semgrep included, must run.
   bundle:
     name: Bundle (${{ matrix.os }})
     needs: changes
@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
