@@ -15,9 +15,11 @@ on:
 permissions:
   contents: read
 
+# Only the newest commit matters: a newer run (push, PR update or manual dispatch)
+# cancels an older one on the same ref instead of queueing behind it.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   changes:
