@@ -94,7 +94,8 @@ mkdirSync(runnerTemp);
 function parseOutputs(text) {
   /** @type {StringMap} */
   const outputs = {};
-  const lines = text.split('\n');
+  // @actions/core writes os.EOL, which is `\r\n` on Windows runners.
+  const lines = text.split(/\r?\n/);
   for (let i = 0; i < lines.length; i++) {
     const match = /^([^<=]+)<<(.+)$/.exec(lines[i] ?? '');
     if (!match?.[1] || !match[2]) continue;
@@ -176,7 +177,7 @@ function runAction(workspace, inputs = {}) {
 function engineRows(summary) {
   /** @type {StringMap} */
   const rows = {};
-  for (const line of summary.split('\n')) {
+  for (const line of summary.split(/\r?\n/)) {
     const cells = line.split('|').map((c) => c.trim());
     const [, label, , status] = cells;
     if (label && status && /ran|failed|skipped/.test(status)) rows[label] = status;
@@ -405,6 +406,17 @@ for (const { name, run } of scenarios) {
   );
   for (const r of results) console.log(`    ${r.ok ? '✓' : '✗'} ${r.what}`);
   for (const n of notes) console.log(`    ! ${n}`);
+  // On GitHub, also report each failure as an annotation: annotations show on the run's
+  // summary page and are readable through the API without access to the raw logs.
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    for (const r of failed) {
+      const message = `${name}: ${r.what}`
+        .replace(/%/g, '%25')
+        .replace(/\r/g, '%0D')
+        .replace(/\n/g, '%0A');
+      console.log(`::error title=E2E on ${process.platform}::${message}`);
+    }
+  }
 }
 
 rmSync(work, { recursive: true, force: true });
