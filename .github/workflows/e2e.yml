@@ -1,4 +1,4 @@
-name: E2E
+name: End-user tests
 
 # Runs the action the way users do, before they do. The weekly schedule catches breakage
 # that comes from outside this repository: a scanner release that renames an asset or its

@@ -1,5 +1,15 @@
 # 🛡️ Polyglot Security Guard
 
+[![CI](https://github.com/xkid1/polyglot-security-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/ci.yml)
+[![Build](https://github.com/xkid1/polyglot-security-scan/actions/workflows/build.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/build.yml)
+[![Tests](https://github.com/xkid1/polyglot-security-scan/actions/workflows/test.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/test.yml)
+[![End-user tests](https://github.com/xkid1/polyglot-security-scan/actions/workflows/e2e.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/e2e.yml)
+[![CodeQL](https://github.com/xkid1/polyglot-security-scan/actions/workflows/codeql.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/xkid1/polyglot-security-scan/badge)](https://scorecard.dev/viewer/?uri=github.com/xkid1/polyglot-security-scan)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Polyglot%20Security%20Guard-2ea44f?logo=github)](https://github.com/marketplace/actions/polyglot-security-guard)
+[![Release](https://img.shields.io/github/v/release/xkid1/polyglot-security-scan?sort=semver)](https://github.com/xkid1/polyglot-security-scan/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **One action. Every language. Vulnerable dependencies, insecure code, leaked secrets, malicious code, and risky CI changes, all in one PR comment.**
 
 Most security actions cover one language or one kind of problem, so teams end up wiring together 4–5 tools with 4–5 different reports. Polyglot Security Guard **detects what your repo is made of** and runs the right scanners automatically:
