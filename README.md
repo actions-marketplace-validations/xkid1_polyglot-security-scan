@@ -12,6 +12,8 @@
 
 **One action. Every language. Vulnerable dependencies, insecure code, leaked secrets, malicious code, and risky CI changes, all in one PR comment.**
 
+Polyglot Security Guard is a free, open-source **security scanner GitHub Action** for DevSecOps and supply-chain security: dependency scanning (SCA) for known vulnerabilities and malicious packages, static analysis (SAST), secret scanning, malware detection and GitHub Actions workflow auditing, with SARIF output for GitHub code scanning.
+
 Most security actions cover one language or one kind of problem, so teams end up wiring together 4–5 tools with 4–5 different reports. Polyglot Security Guard **detects what your repo is made of** and runs the right scanners automatically:
 
 | Check | What it finds | Engine |
