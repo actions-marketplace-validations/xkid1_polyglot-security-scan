@@ -1,5 +1,5 @@
 name: 'Polyglot Security Guard'
-description: 'Auto-detects your languages and scans for vulnerable dependencies, insecure code, leaked secrets, malicious code and risky workflow changes.'
+description: 'Auto-detects languages and scans for vulnerable dependencies, insecure code, secrets, malware and risky workflow changes.'
 author: 'xkid1'
 branding:
   icon: 'shield'
