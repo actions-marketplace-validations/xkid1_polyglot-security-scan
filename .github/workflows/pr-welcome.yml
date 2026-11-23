@@ -1,0 +1,36 @@
+name: Welcome first-time contributors
+
+on:
+  issues:
+    types:
+      - opened
+  pull_request_target:
+    types:
+      - opened
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      # v3 renamed the inputs to snake_case; repo_token defaults to github.token.
+      - name: Welcome first-time contributors
+        uses: actions/first-interaction@v3
+        with:
+          issue_message: >-
+            Thanks for opening your first issue! A maintainer will take a look soon.
+            If it's a bug, your workflow's `uses:` ref and `with:` inputs, the check
+            that is affected and the runner OS help us fix it faster. Please never
+            paste tokens, keys or other secrets from your logs. Security problems
+            belong in a private advisory (see SECURITY.md), not an issue.
+          pr_message: >-
+            Thanks for your first pull request! Please make sure `yarn check` and
+            `yarn build && yarn verify:dist` pass locally, commit the rebuilt
+            `dist/`, and use a Conventional Commits title (for example
+            `fix(malware): ignore minified bundles`). Every new detection rule needs
+            a positive and a "stays quiet" test. See Contributing.md for the ground
+            rules. A maintainer will review it soon.

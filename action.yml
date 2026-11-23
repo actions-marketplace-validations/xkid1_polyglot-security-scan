@@ -1,0 +1,82 @@
+name: 'Polyglot Security Guard'
+description: 'Auto-detects your languages and scans for vulnerable dependencies, insecure code, leaked secrets, malicious code and risky workflow changes.'
+author: 'xkid1'
+branding:
+  icon: 'shield'
+  color: 'purple'
+
+inputs:
+  github-token:
+    description: 'Token used to read PR files and post the comment.'
+    required: false
+    default: ${{ github.token }}
+  checks:
+    description: 'Comma-separated checks to run: dependencies, code, secrets, malware, workflows.'
+    required: false
+    default: 'dependencies,code,secrets,malware,workflows'
+  scope:
+    description: 'auto (changed files on PRs, whole repo otherwise), changed, or all.'
+    required: false
+    default: 'auto'
+  fail-on:
+    description: 'Fail the check at this severity or above: none, low, medium, high, critical.'
+    required: false
+    default: 'high'
+  path:
+    description: 'Directory to scan, relative to the workspace.'
+    required: false
+    default: '.'
+  exclude:
+    description: 'Comma-separated globs to skip, e.g. "test/fixtures/**, docs/".'
+    required: false
+    default: ''
+  semgrep-rules:
+    description: 'Override Semgrep rulesets (e.g. "p/owasp-top-ten, ./my-rules.yml"). Empty = auto-pick from detected languages.'
+    required: false
+    default: ''
+  comment:
+    description: 'Post (and keep updating) a PR comment with results.'
+    required: false
+    default: 'true'
+  comment-when-clean:
+    description: 'Also comment when nothing was found.'
+    required: false
+    default: 'false'
+  trusted-owners:
+    description: 'Action owners treated as trusted by the workflow check.'
+    required: false
+    default: 'actions,github'
+  sarif-file:
+    description: 'Where to write the combined SARIF report (for upload to the Security tab).'
+    required: false
+    default: 'polyglot-security-guard.sarif'
+  osv-scanner-version:
+    description: 'OSV-Scanner version.'
+    required: false
+    default: '2.7.0'
+  gitleaks-version:
+    description: 'Gitleaks version.'
+    required: false
+    default: '8.30.1'
+  semgrep-version:
+    description: 'Semgrep version.'
+    required: false
+    default: '1.186.0'
+
+outputs:
+  languages:
+    description: 'JSON array of detected languages.'
+  findings-count:
+    description: 'Total number of findings.'
+  critical-count:
+    description: 'Number of critical findings.'
+  high-count:
+    description: 'Number of high findings.'
+  findings:
+    description: 'All findings as JSON: [{check, tool, severity, rule, file, line, message}].'
+  sarif-file:
+    description: 'Absolute path to the SARIF report.'
+
+runs:
+  using: 'node24'
+  main: 'dist/index.js'

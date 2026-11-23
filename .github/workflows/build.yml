@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # Skips the jobs below when only *.md / *.yml files changed. Skipped jobs
+  # count as passed for required status checks, so docs-only PRs can merge.
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.changes.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: changes
+        uses: ./.github/actions/changes
+
+  # clean → tsc (src type-check) → ncc bundles src/index.ts into dist/index.js, then
+  # scripts/verify-dist.mjs: self-contained bundle (no aliases, no external imports) and a
+  # smoke run against a fixture repository. action.yml runs dist/ straight from the repo,
+  # so the committed dist/ must match a fresh build.
+  package:
+    name: Build
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: yarn build
+      - run: yarn verify:dist
+      - name: Make sure dist/ was rebuilt and committed
+        run: |
+          if ! git diff --exit-code --stat -- dist/; then
+            echo "::error::dist/ is out of date. Run 'yarn build' and commit dist/."
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7

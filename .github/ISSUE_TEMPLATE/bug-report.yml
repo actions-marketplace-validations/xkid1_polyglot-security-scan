@@ -1,0 +1,99 @@
+name: Bug report
+description: Report a reproducible problem with Polyglot Security Guard.
+title: '[Bug]: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem.
+
+        **Security issue?** (for example a way to make the action read files outside the repository, leak a secret into a log or comment, or skip a check) Don't open a public issue. Report it privately instead; see [SECURITY.md](https://github.com/xkid1/polyglot-security-scan/blob/main/SECURITY.md).
+
+        **Never paste secrets.** Logs and job summaries can contain file paths and code snippets; remove tokens, keys and passwords before pasting them.
+
+        Please search [existing issues](https://github.com/xkid1/polyglot-security-scan/issues?q=is%3Aissue) first.
+
+  - type: input
+    id: version
+    attributes:
+      label: Action version
+      description: The ref in your workflow's `uses:` line (tag or commit SHA).
+      placeholder: xkid1/polyglot-security-scan@v1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: check
+    attributes:
+      label: Which check is affected?
+      multiple: true
+      options:
+        - dependencies (OSV-Scanner)
+        - code (Semgrep)
+        - secrets (Gitleaks)
+        - malware (built-in)
+        - workflows (built-in)
+        - Language detection
+        - PR comment / job summary / SARIF output
+        - Inputs / configuration
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What goes wrong?
+      options:
+        - False positive (flags safe code)
+        - False negative (misses a real problem)
+        - The action fails or crashes
+        - Wrong or confusing output
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Workflow configuration
+      description: The job that runs the action, including its `with:` inputs.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: |
+        A link to a small public repository or PR is best. For a false positive/negative,
+        paste the smallest code sample that triggers it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the relevant part of the job log (with secrets removed).
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: runner
+    attributes:
+      label: Runner
+      placeholder: ubuntu-latest, macos-14, self-hosted Linux arm64…
+    validations:
+      required: true

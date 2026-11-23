@@ -1,0 +1,88 @@
+# Labels pull requests from the files they change (pr-labeler.yml). The labels also
+# group the generated release notes (release.yml).
+
+# The action runtime: inputs, pipeline, outputs.
+'action':
+  - changed-files:
+      - any-glob-to-any-file: 'src/apps/**'
+
+# External scanners: install (checksums), run and parse.
+'engines':
+  - changed-files:
+      - any-glob-to-any-file: 'src/libs/engines/**'
+
+# Built-in checks: language detection, malware heuristics, workflow analysis.
+'checks':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/libs/detection/**'
+          - 'src/libs/malware/**'
+          - 'src/libs/workflows/**'
+
+'report':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/libs/report/**'
+          - 'src/libs/filters/**'
+          - 'src/libs/github/**'
+
+'types':
+  - changed-files:
+      - any-glob-to-any-file: 'src/types/**'
+
+'utils':
+  - changed-files:
+      - any-glob-to-any-file: 'src/utils/**'
+
+# Any non-test source change, so release notes can tell code changes apart.
+'source':
+  - changed-files:
+      - any-glob-to-any-file: 'src/**/*.ts'
+
+'tests':
+  - changed-files:
+      - any-glob-to-any-file: 'tests/**'
+
+'e2e':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'e2e/**'
+          - '.github/workflows/e2e.yml'
+
+'benchmarks':
+  - changed-files:
+      - any-glob-to-any-file: 'bench/**'
+
+# The committed bundle that action.yml runs.
+'dist':
+  - changed-files:
+      - any-glob-to-any-file: 'dist/**'
+
+'ci':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/actions/**'
+          - '.github/dependabot.yml'
+          - '.github/labeler.yml'
+          - '.github/release.yml'
+
+'documentation':
+  - changed-files:
+      - any-glob-to-any-file: '**/*.md'
+
+'tooling':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'yarn.lock'
+          - '.yarnrc.yml'
+          - 'action.yml'
+          - 'tsconfig*.json'
+          - '.nvmrc'
+          - '.editorconfig'
+          - '.prettierrc.ts'
+          - '.prettierignore'
+          - 'eslint.config.ts'
+          - 'vitest.config.ts'
+          - 'scripts/**'

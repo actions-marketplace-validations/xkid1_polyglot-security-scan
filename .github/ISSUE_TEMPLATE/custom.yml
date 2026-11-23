@@ -1,0 +1,41 @@
+name: Question or other request
+description: Ask how to use the action, or raise something not covered by the other forms.
+title: '[Question]: '
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The [README](https://github.com/xkid1/polyglot-security-scan#readme) covers every
+        check, input and output, SARIF upload and inline ignores. It may already answer your
+        question.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Topic
+      options:
+        - Usage / how do I...?
+        - Choosing checks, scope or fail-on
+        - Excluding files / ignoring findings
+        - SARIF and the Security tab
+        - Forks, tokens and permissions
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Question or request
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Your workflow, versions or links. Never paste tokens, keys or other secrets.
+      render: yaml

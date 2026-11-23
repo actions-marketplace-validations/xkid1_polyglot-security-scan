@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // Type-checks only the shipped source (no tests, no scripts) before `ncc` bundles
+  // src/index.ts into dist/index.js. ncc does the transpiling, so nothing is emitted here.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "tests", "**/*.test.ts"]
+}

@@ -1,0 +1,14 @@
+node_modules/
+*.log
+.DS_Store
+coverage/
+
+# Local-only files
+.claude/settings.local.json
+*:Zone.Identifier
+
+# Yarn (Corepack provides Yarn itself, so nothing under .yarn/ is committed)
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+.pnp.*

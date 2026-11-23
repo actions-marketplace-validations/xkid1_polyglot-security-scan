@@ -1,0 +1,61 @@
+name: Feature request
+description: Suggest an improvement or a new capability.
+title: '[Feature]: '
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The action's defaults are never relaxed: a new option may *add* strictness or offer
+        an explicit opt-in, but can't weaken an existing check. Proposals that fit within
+        that are the easiest to accept.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Dependencies check (OSV-Scanner)
+        - Code check (Semgrep)
+        - Secrets check (Gitleaks)
+        - Malware heuristics (new pattern or language)
+        - Workflow change analysis
+        - Language / ecosystem detection
+        - PR comment, job summary or SARIF output
+        - Inputs / configuration
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What are you trying to catch or do, and what stops you today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: The input or behavior you'd like, with a short workflow example.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you use today, or other tools that solve this.
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd be willing to open a pull request for this.

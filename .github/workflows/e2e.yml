@@ -1,0 +1,128 @@
+name: E2E
+
+# Runs the action the way users do, before they do. The weekly schedule catches breakage
+# that comes from outside this repository: a scanner release that renames an asset or its
+# checksum file, an OSV API change, or a Semgrep registry ruleset that moved.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.changes.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: changes
+        uses: ./.github/actions/changes
+
+  # e2e/run.mjs against the COMMITTED dist/ (what users run), with the real scanners
+  # downloaded and checksum-verified on every OS the action supports. Strict mode: every
+  # engine must run; Semgrep must be skipped (not failed) on Windows.
+  bundle:
+    name: Bundle (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: End-to-end suite
+        env:
+          E2E_STRICT: '1'
+        run: yarn e2e
+
+  # The action through `uses: ./`, exactly like a user's workflow: this also tests
+  # action.yml (input defaults, output mapping, the node runtime) and, on pull requests,
+  # the workflows check against the real GitHub API.
+  action:
+    name: Action
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Generate the vulnerable test repository
+        run: >-
+          node --input-type=module -e
+          "const m = await import('./e2e/fixtures.mjs'); m.createVulnerableRepo('e2e-workspace');"
+
+      - name: Scan with defaults (must fail the step)
+        id: strict
+        continue-on-error: true
+        uses: ./
+        with:
+          path: e2e-workspace
+          exclude: 'excluded/**'
+          comment: false
+
+      - name: Scan with fail-on none (must pass)
+        id: scan
+        uses: ./
+        with:
+          path: e2e-workspace
+          exclude: 'excluded/**'
+          fail-on: none
+          comment: false
+          sarif-file: results.sarif
+
+      - name: Check outcomes and outputs
+        env:
+          STRICT_OUTCOME: ${{ steps.strict.outcome }}
+          COUNT: ${{ steps.scan.outputs.findings-count }}
+          CRITICAL: ${{ steps.scan.outputs.critical-count }}
+          HIGH: ${{ steps.scan.outputs.high-count }}
+          LANGUAGES: ${{ steps.scan.outputs.languages }}
+          SARIF: ${{ steps.scan.outputs.sarif-file }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const env = process.env;
+          const problems = [];
+          const check = (ok, what) => { console.log(`${ok ? '✓' : '✗'} ${what}`); if (!ok) problems.push(what); };
+
+          check(env.STRICT_OUTCOME === 'failure', `default fail-on fails the step (outcome: ${env.STRICT_OUTCOME})`);
+          check(Number(env.COUNT) > 0, `findings-count output is set (${env.COUNT})`);
+          check(Number(env.CRITICAL) >= 1, `critical-count counts the reverse shell (${env.CRITICAL})`);
+          check(Number(env.HIGH) >= 1, `high-count counts the dependency/secret findings (${env.HIGH})`);
+          check(JSON.parse(env.LANGUAGES || '[]').includes('Python'), `languages output (${env.LANGUAGES})`);
+          check(env.SARIF?.endsWith('e2e-workspace/results.sarif'), `sarif-file resolves against path (${env.SARIF})`);
+          const sarif = JSON.parse(readFileSync(env.SARIF, 'utf8'));
+          check(sarif.version === '2.1.0', 'SARIF file is valid 2.1.0');
+          check(sarif.runs[0].results.length === Number(env.COUNT), 'SARIF has one result per finding');
+
+          if (problems.length) process.exit(1);
+          NODE

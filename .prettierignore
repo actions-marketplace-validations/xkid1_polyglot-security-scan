@@ -1,0 +1,9 @@
+dist
+coverage
+node_modules
+yarn.lock
+.yarn
+/.github/
+*.md
+action.yml
+.vscode
