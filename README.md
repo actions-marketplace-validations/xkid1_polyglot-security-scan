@@ -3,7 +3,7 @@
 [![CI](https://github.com/xkid1/polyglot-security-scan/actions/workflows/ci.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/ci.yml)
 [![Build](https://github.com/xkid1/polyglot-security-scan/actions/workflows/build.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/build.yml)
 [![Tests](https://github.com/xkid1/polyglot-security-scan/actions/workflows/test.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/test.yml)
-[![End-user tests](https://github.com/xkid1/polyglot-security-scan/actions/workflows/e2e.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/e2e.yml)
+[![E2E](https://github.com/xkid1/polyglot-security-scan/actions/workflows/e2e.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/e2e.yml)
 [![CodeQL](https://github.com/xkid1/polyglot-security-scan/actions/workflows/codeql.yml/badge.svg)](https://github.com/xkid1/polyglot-security-scan/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/xkid1/polyglot-security-scan/badge)](https://scorecard.dev/viewer/?uri=github.com/xkid1/polyglot-security-scan)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Polyglot%20Security%20Guard-2ea44f?logo=github)](https://github.com/marketplace/actions/polyglot-security-guard)

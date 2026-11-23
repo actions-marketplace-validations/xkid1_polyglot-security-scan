@@ -1,4 +1,4 @@
-name: End-user tests
+name: E2E
 
 # Runs the action the way users do, before they do. The weekly schedule catches breakage
 # that comes from outside this repository: a scanner release that renames an asset or its
@@ -126,3 +126,23 @@ jobs:
 
           if (problems.length) process.exit(1);
           NODE
+
+  # The one check to mark as required in the branch ruleset: it passes only when every
+  # job above succeeded (or was skipped because a PR changed only docs/config), so the
+  # ruleset doesn't need updating when the OS matrix changes.
+  e2e:
+    name: E2E
+    needs: [changes, bundle, action]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any end-to-end job failed or was cancelled
+        if: >-
+          contains(needs.*.result, 'failure') ||
+          contains(needs.*.result, 'cancelled') ||
+          needs.changes.result != 'success'
+        run: |
+          echo "::error::An end-to-end job did not pass. See the Bundle and Action jobs."
+          exit 1
+      - name: All end-to-end jobs passed
+        run: echo "Bundle (all OSes) and Action passed, or were skipped for a docs-only change."
