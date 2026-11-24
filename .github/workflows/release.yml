@@ -38,7 +38,7 @@ jobs:
       major: ${{ steps.meta.outputs.major }}
       prerelease: ${{ steps.meta.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 0 # full history: the tag must be on main
@@ -126,7 +126,7 @@ jobs:
       PRERELEASE: ${{ needs.verify.outputs.prerelease }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 0
